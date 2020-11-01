@@ -1,6 +1,7 @@
 package testcases;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -25,12 +26,16 @@ public class UiActionsTest {
     @Test
     public void goinToWebsiteTest() {
         UIActions i = new UIActions();
+        WebDriver driver = Browser.getDriver();
 
-        i.gotoSite("https://www.google.com");
-        By search_input = By.name("qasdfa");
-        boolean isPrsent = i.elementIsPresent(search_input);
-        System.out.println(isPrsent);
-        i.waitFor(3);
+        driver.get("https://www.google.com");
+        i.waitFor(2);
+
+        By search_box = By.name("q");
+        i.write(search_box, "Stock price");
+
+        i.waitFor(10);
+
     }
 
 

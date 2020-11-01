@@ -17,7 +17,6 @@ public class UIActions {
     }
 
     //region BROWSER RELATED METHODS
-
     public void gotoSite(String url) {
         driver.get(url);
     }
@@ -46,6 +45,14 @@ public class UIActions {
     public void goBack() {
         driver.navigate().back();
     }
+
+    public String title() {
+        return driver.getTitle();
+    }
+
+    public String getCurrentURL() {
+        return driver.getCurrentUrl();
+    }
     //endregion
 
 
@@ -53,6 +60,7 @@ public class UIActions {
     public void click(By locator) {
         try {
             WebElement element = waits.until(ExpectedConditions.elementToBeClickable(locator));
+            highlight(element);
             element.click();
         } catch (Exception e) {
             System.out.println("====CLICK ERROR========================");
@@ -62,9 +70,65 @@ public class UIActions {
         }
     }
 
+    public void doubleClick(By locator) {
+
+    }
+
+    public void rightClick(By locator) {
+
+    }
+
+    public void dragAndDrop(By form, By target) {
+
+    }
+
+    public void selectOptionsWithText(By locator, String text) {
+
+    }
+
+    public void selectOptionsWithValue(By locator, String value) {
+
+    }
+
+    public void hover(By locator) {
+
+    }
+
+    public WebElement grabAsWebElement(By locator) {
+        WebElement element = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        return element;
+    }
+
+    public void highlight(By locator) {
+        WebElement element = grabAsWebElement(locator);
+        JavascriptExecutor js = (JavascriptExecutor)driver;
+        String script = "arguments[0].setAttribute('style','border: 4px solid purple;');";
+        js.executeScript(script, element);
+    }
+
+    public void highlight(WebElement element) {
+        JavascriptExecutor js = (JavascriptExecutor)driver;
+        String script = "arguments[0].setAttribute('style','border: 4px solid purple;');";
+        js.executeScript(script, element);
+    }
+
     public void write(By locator, String text) {
         try {
             WebElement input = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            highlight(input);
+            input.sendKeys(text);
+        }catch (Exception e) {
+            System.out.println("====CLICK ERROR========================");
+            System.out.println("Where   :  " + driver.getCurrentUrl() );
+            System.out.println("Element :  " + locator.toString() );
+            System.out.println("=======================================");
+        }
+    }
+
+    public void clearThenWrite(By locator, String text) {
+        try {
+            WebElement input = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            input.clear();
             input.sendKeys(text);
         }catch (Exception e) {
             System.out.println("====CLICK ERROR========================");
@@ -138,7 +202,6 @@ public class UIActions {
         }
         return false;
     }
-
     //endregion
 
 
