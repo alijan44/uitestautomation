@@ -127,10 +127,17 @@ public class UIActions {
     }
 
     public boolean elementIsSelected(By locator) {
-        WebElement element = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
-        return element.isSelected();
+        try {
+            WebElement element = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            return element.isSelected();
+        }catch (Exception e){
+            System.out.println("====Element SELECTED ERROR========================");
+            System.out.println("Where   :  " + driver.getCurrentUrl() );
+            System.out.println("Determining the element's enablement has failed.");
+            System.out.println("=======================================");
+        }
+        return false;
     }
-
 
     //endregion
 
@@ -159,6 +166,11 @@ public class UIActions {
             System.out.println("=======================================");
         }
     }
+
+    public void waitUntilElementIsInvisible(By locator) {
+        waits.until(ExpectedConditions.invisibilityOfElementLocated(locator));
+    }
+
     //endregion
 
 }
