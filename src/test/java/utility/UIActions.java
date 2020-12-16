@@ -1,10 +1,14 @@
 package utility;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-public class UIActions {
+public abstract class UIActions {
 
     // Global variable
     private static WebDriver driver;
@@ -12,52 +16,52 @@ public class UIActions {
 
 
     public UIActions() {
-        driver = Browser.getDriver();
-        waits = new WebDriverWait(driver, 5);
+        driver = DriverUtil.getDriver();
+        waits = new WebDriverWait(driver, 30);
     }
 
     //region BROWSER RELATED METHODS
-    public void gotoSite(String url) {
+    protected void gotoSite(String url) {
         driver.get(url);
     }
 
-    public void maximize() {
+    protected void maximize() {
         driver.manage().window().maximize();
     }
 
-    public void fullScreen() {
+    protected void fullScreen() {
         driver.manage().window().fullscreen();
     }
 
-    public void setResolutions(int width, int height) {
+    protected void setResolutions(int width, int height) {
         Dimension size = new Dimension(width, height);
         driver.manage().window().setSize(size);
     }
 
-    public void refresh() {
+    protected void refresh() {
         driver.navigate().refresh();
     }
 
-    public void goFoward() {
+    protected void goFoward() {
         driver.navigate().forward();
     }
 
-    public void goBack() {
+    protected void goBack() {
         driver.navigate().back();
     }
 
-    public String title() {
+    protected String title() {
         return driver.getTitle();
     }
 
-    public String getCurrentURL() {
+    protected String getCurrentURL() {
         return driver.getCurrentUrl();
     }
     //endregion
 
 
     //region ELEMENT RELATED METHODS
-    public void click(By locator) {
+    protected void click(By locator) {
         try {
             WebElement element = waits.until(ExpectedConditions.elementToBeClickable(locator));
             highlight(element);
@@ -70,49 +74,111 @@ public class UIActions {
         }
     }
 
-    public void doubleClick(By locator) {
-
+    protected void click(String text) {
+        By locator = xpath("//*[text()='" + text +"']");
+        List<WebElement> allElems = findAllElements(locator);
+        if(allElems.size() > 0) {
+            for(WebElement element : allElems) {
+                if(element.getText().equalsIgnoreCase(text)){
+                    highlight(element);
+                    element.click();
+                    break;
+                }
+            }
+        }
     }
 
-    public void rightClick(By locator) {
-
+    protected void doubleClick(By locator) {
+        WebElement element = findElement(locator);
+        highlight(element);
+        Actions actions = new Actions(driver);
+        actions.doubleClick(element);
+        actions.perform();
     }
 
-    public void dragAndDrop(By form, By target) {
-
+    protected void rightClick(By locator) {
+        WebElement element = findElement(locator);
+        highlight(element);
+        Actions actions = new Actions(driver);
+        actions.contextClick(element);
+        actions.perform();
     }
 
-    public void selectOptionsWithText(By locator, String text) {
-
+    protected void dragAndDrop(By form, By target) {
+        WebElement fromElem = findElement(form);
+        highlight(fromElem);
+        WebElement targetElem = findElement(target);
+        Actions actions = new Actions(driver);
+        actions.dragAndDrop(fromElem, targetElem);
+        actions.perform();
     }
 
-    public void selectOptionsWithValue(By locator, String value) {
-
+    protected void selectOptionsWithText(By locator, String optionText) {
+        WebElement element = findElement(locator);
+        highlight(element);
+        Select dropdown = new Select(element);
+        for(WebElement opt : dropdown.getOptions() ) {
+            if(opt.getText().equals(optionText)) {
+                highlight(opt);
+                opt.click();
+                break;
+            }
+        }
     }
 
-    public void hover(By locator) {
-
+    protected void selectOptionsWithValue(By locator, String value) {
+        WebElement element = findElement(locator);
+        highlight(element);
+        Select dropdown = new Select(element);
+        for(WebElement opt : dropdown.getOptions() ){
+            String extractedAttrValue = opt.getAttribute("value");
+            if(extractedAttrValue.equals(value)) {
+                highlight(opt);
+                opt.click();
+                break;
+            }
+        }
     }
 
-    public WebElement grabAsWebElement(By locator) {
+    protected WebElement moveElementToDisplay(By locator) {
+        WebElement element = findElement(locator);
+        highlight(element);
+        Actions actions = new Actions(driver);
+        actions.moveToElement(element).perform();
+        return  element;
+    }
+
+    protected WebElement moveElementToDisplay(WebElement element) {
+        highlight(element);
+        Actions actions = new Actions(driver);
+        actions.moveToElement(element).perform();
+        return  element;
+    }
+
+    protected void hover(By locator) {
+        WebElement element = findElement(locator);
+        Actions actions = new Actions(driver);
+        actions.moveToElement(element);
+        actions.perform();
+    }
+
+    protected WebElement findElement(By locator) {
         WebElement element = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
         return element;
     }
 
-    public void highlight(By locator) {
-        WebElement element = grabAsWebElement(locator);
+    protected void highlight(By locator) {
+        WebElement element = findElement(locator);
         JavascriptExecutor js = (JavascriptExecutor)driver;
-        String script = "arguments[0].setAttribute('style','border: 4px solid purple;');";
-        js.executeScript(script, element);
+        js.executeScript("arguments[0].setAttribute('style', 'border: 3px solid red;');", element);
     }
 
-    public void highlight(WebElement element) {
+    protected void highlight(WebElement element) {
         JavascriptExecutor js = (JavascriptExecutor)driver;
-        String script = "arguments[0].setAttribute('style','border: 4px solid purple;');";
-        js.executeScript(script, element);
+        js.executeScript("arguments[0].setAttribute('style', 'border: 3px solid red;');", element);
     }
 
-    public void write(By locator, String text) {
+    protected void write(By locator, String text) {
         try {
             WebElement input = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
             highlight(input);
@@ -125,7 +191,7 @@ public class UIActions {
         }
     }
 
-    public void clearThenWrite(By locator, String text) {
+    protected void clearThenWrite(By locator, String text) {
         try {
             WebElement input = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
             input.clear();
@@ -138,7 +204,7 @@ public class UIActions {
         }
     }
 
-    public void clear(By locator) {
+    protected void clear(By locator) {
         try {
             WebElement input = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
             input.clear();
@@ -150,14 +216,15 @@ public class UIActions {
         }
     }
 
-    public String getText(By locator) {
+    protected String getText(By locator) {
         WebElement element = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
         return element.getText();
     }
 
-    public boolean elementIsVisible(By locator) {
+    protected boolean elementIsVisible(By locator) {
         try{
             WebElement element = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            highlight(element);
             return element.isDisplayed();  // true, false
         }catch (Exception e) {
             System.out.println("====Element Visibility ERROR========================");
@@ -168,7 +235,7 @@ public class UIActions {
         return false;
     }
 
-    public boolean elementIsPresent(By locator) {
+    protected boolean elementIsPresent(By locator) {
         try {
             WebElement element = waits.until(ExpectedConditions.presenceOfElementLocated(locator));
             return true;
@@ -177,7 +244,7 @@ public class UIActions {
         }
     }
 
-    public boolean elementIsEnabled(By locator) {
+    protected boolean elementIsEnabled(By locator) {
         try {
             WebElement element = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
             return element.isEnabled();
@@ -190,7 +257,7 @@ public class UIActions {
         return false;
     }
 
-    public boolean elementIsSelected(By locator) {
+    protected boolean elementIsSelected(By locator) {
         try {
             WebElement element = waits.until(ExpectedConditions.visibilityOfElementLocated(locator));
             return element.isSelected();
@@ -205,8 +272,42 @@ public class UIActions {
     //endregion
 
 
+    //region MULTIPLE ELEMENT RELATED METHODS
+    protected List<WebElement> findAllElements(By locator) {
+        return waits.until(ExpectedConditions.presenceOfAllElementsLocatedBy(locator));
+    }
+
+    protected boolean clickNthElementWithText(By locator, String text) {
+        List<WebElement> allElems = waits.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator));
+        for(WebElement element : allElems) {
+            if(element.getText().equals(text)) {
+                moveElementToDisplay(element);
+                highlight(element);
+                element.click();
+                return true;
+            }
+        }
+        // if code execution reaches here
+        return false;
+    }
+
+    protected List<String> getAllTexts(By locator) {
+        List<WebElement> allElems = waits.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator));
+        List<String> allTexts = new ArrayList<>();  // empty list of string with size 0
+
+        if(allElems.size() > 0) {
+            for(WebElement element : allElems) {
+                String currentText = element.getText();
+                allTexts.add(currentText);
+            }
+        }
+        return  allTexts;
+    }
+    //endregion
+
+
     //region TIME & WAITS RELATED METHODS
-    public void waitFor(int second) {
+    protected void waitFor(int second) {
         try {
             Thread.sleep(second * 1000);
         }
@@ -218,7 +319,7 @@ public class UIActions {
         }
     }
 
-    public void waitForMilli(int millisecond) {
+    protected void waitForMilli(int millisecond) {
         try {
             Thread.sleep(millisecond);
         }
@@ -230,10 +331,45 @@ public class UIActions {
         }
     }
 
-    public void waitUntilElementIsInvisible(By locator) {
+    protected void waitUntilElementIsInvisible(By locator) {
         waits.until(ExpectedConditions.invisibilityOfElementLocated(locator));
     }
+    //endregion
 
+
+    //region ELEMENT LOCATING STRATEGY
+    protected By css(String expression) {
+        return By.cssSelector(expression);
+    }
+
+    protected By xpath(String expression) {
+        return By.xpath(expression);
+    }
+
+    protected By id(String value) {
+        return By.id(value);
+    }
+
+    protected By name(String value) {
+        return By.name(value);
+    }
+
+    protected By classAttr(String value) {
+        return By.className(value);
+    }
+
+    protected By link(String text) {
+        return By.linkText(text);
+    }
+
+    protected By linkContains(String text) {
+        return By.partialLinkText(text);
+    }
+
+    protected By tag(String tagname) {
+        return By.tagName(tagname);
+    }
     //endregion
 
 }
+
